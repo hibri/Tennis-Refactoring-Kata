@@ -1,10 +1,17 @@
 package tenniskata
 
+var scoreMap = map[int]string{
+	0: "Love",
+	1: "Fifteen",
+	2: "Thirty",
+	3: "Forty",
+}
+
 type tennisGame1 struct {
-	m_score1    int
-	m_score2    int
-	player1Name string
-	player2Name string
+	player1Score int
+	player2Score int
+	player1Name  string
+	player2Name  string
 }
 
 func TennisGame1(player1Name string, player2Name string) TennisGame {
@@ -17,56 +24,62 @@ func TennisGame1(player1Name string, player2Name string) TennisGame {
 
 func (game *tennisGame1) WonPoint(playerName string) {
 	if playerName == "player1" {
-		game.m_score1 += 1
+		game.player1Score += 1
 	} else {
-		game.m_score2 += 1
+		game.player2Score += 1
 	}
 }
 
 func (game *tennisGame1) GetScore() string {
+	if arePlayersTied(game) {
+		return getScoreAtTied(game)
+	} else if arePlayersAtAdvantage(game) {
+		return getScoreAtAdvantage(game)
+	} else {
+		return getScoreNormal(game)
+	}
+}
+func arePlayersAtAdvantage(game *tennisGame1) bool {
+	return game.player1Score >= 4 || game.player2Score >= 4
+}
+
+func arePlayersTied(game *tennisGame1) bool {
+	return game.player1Score == game.player2Score
+}
+
+func getScoreNormal(game *tennisGame1) string {
 	score := ""
 	tempScore := 0
-	if game.m_score1 == game.m_score2 {
-		switch game.m_score1 {
-		case 0:
-			score = "Love-All"
-		case 1:
-			score = "Fifteen-All"
-		case 2:
-			score = "Thirty-All"
-		default:
-			score = "Deuce"
-		}
-	} else if game.m_score1 >= 4 || game.m_score2 >= 4 {
-		minusResult := game.m_score1 - game.m_score2
-		if minusResult == 1 {
-			score = "Advantage player1"
-		} else if minusResult == -1 {
-			score = "Advantage player2"
-		} else if minusResult >= 2 {
-			score = "Win for player1"
+	for i := 1; i < 3; i++ {
+		if i == 1 {
+			tempScore = game.player1Score
 		} else {
-			score = "Win for player2"
+			score += "-"
+			tempScore = game.player2Score
 		}
-	} else {
-		for i := 1; i < 3; i++ {
-			if i == 1 {
-				tempScore = game.m_score1
-			} else {
-				score += "-"
-				tempScore = game.m_score2
-			}
-			switch tempScore {
-			case 0:
-				score += "Love"
-			case 1:
-				score += "Fifteen"
-			case 2:
-				score += "Thirty"
-			case 3:
-				score += "Forty"
-			}
-		}
+		score += scoreMap[tempScore]
+
 	}
 	return score
+}
+
+func getScoreAtTied(game *tennisGame1) string {
+	if game.player1Score > 2 {
+		return "Deuce"
+	}
+
+	return scoreMap[game.player1Score] + "-All"
+}
+
+func getScoreAtAdvantage(game *tennisGame1) string {
+	scoreDifference := game.player1Score - game.player2Score
+	if scoreDifference == 1 {
+		return "Advantage player1"
+	} else if scoreDifference == -1 {
+		return "Advantage player2"
+	} else if scoreDifference >= 2 {
+		return "Win for player1"
+	} else {
+		return "Win for player2"
+	}
 }
